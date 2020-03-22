@@ -28,7 +28,7 @@ public class Character implements IEntity {
     private HashMap<String, Animation> animations;
     private String selectedAnimation = "idle";
     private int direction = RIGHT;
-    private Vec2d position, velocity, boundsOffset, maxSpeed;
+    private Vec2d position, velocity, acceleration, maxSpeed, boundsOffset;
     private Rectangle2D.Double bounds;
     private boolean jumping = false, falling = true;
     private double jumpForce;
@@ -37,6 +37,7 @@ public class Character implements IEntity {
         this.map = map;
         position = new Vec2d(cx, cy);
         velocity = new Vec2d(0, 0);
+        acceleration = new Vec2d(0, 0);
         maxSpeed = new Vec2d(0.5, 0.6);
         boundsOffset = new Vec2d(5.5, 2);
         bounds = new Rectangle2D.Double(position.x + boundsOffset.x, position.y + boundsOffset.y, 4, 9);
@@ -81,8 +82,8 @@ public class Character implements IEntity {
                 direction = LEFT;
         }
 
-        this.velocity.x += cx;
-        this.velocity.y += cy;
+        this.acceleration.x += cx;
+        this.acceleration.y += cy;
     }
 
     protected void move() {
@@ -102,6 +103,17 @@ public class Character implements IEntity {
         // Moving is harder in the air
         if (falling)
             velocity.x *= 0.85;
+
+        velocity.x += acceleration.x;
+        velocity.y += acceleration.y;
+
+        acceleration.x += acceleration.x > 0 ? -maxSpeed.x : maxSpeed.x;
+        acceleration.y += acceleration.y > 0 ? -maxSpeed.y : maxSpeed.y;
+
+        if (Math.abs(acceleration.x) <= maxSpeed.x)
+            acceleration.x = 0;
+        if (Math.abs(acceleration.y) <= maxSpeed.y)
+            acceleration.y = 0;
 
         if (velocity.x == 0 && velocity.y == 0)
             return;

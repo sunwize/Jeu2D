@@ -50,10 +50,11 @@ public class SwordAttack implements Area {
         if (target instanceof Character) {
             Character c = (Character) target;
             c.hurt(0);
+            double force = 5;
             if (source.getDirection() == Character.RIGHT)
-                c.move(5, 0);
+                c.move(force, 0);
             else if (source.getDirection() == Character.LEFT)
-                c.move(-5, 0);
+                c.move(-force, 0);
         }
     }
 
