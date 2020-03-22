@@ -45,8 +45,16 @@ public class SwordAttack implements Area {
     public void onContact(IEntity target) {
         if (target.equals(source) || touched.contains(target))
             return;
-        System.out.println("touched !");
         touched.add(target);
+
+        if (target instanceof Character) {
+            Character c = (Character) target;
+            c.hurt(0);
+            if (source.getDirection() == Character.RIGHT)
+                c.move(5, 0);
+            else if (source.getDirection() == Character.LEFT)
+                c.move(-5, 0);
+        }
     }
 
     @Override

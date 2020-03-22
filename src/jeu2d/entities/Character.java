@@ -123,7 +123,7 @@ public class Character implements IEntity {
         // Y collision
         if (velocity.y <= 0 || map.checkWallsCollision(new Rectangle2D.Double(bounds.x, bounds.y + velocity.y, bounds.width, bounds.height)))
             this.position.y += this.velocity.y;
-        else if (!map.checkWallsCollision(bounds)) {
+        else if (!map.checkWallsCollision(bounds)) { // If stuck then fall
             this.position.y += this.velocity.y;
             jumping = true;
         }
@@ -165,6 +165,8 @@ public class Character implements IEntity {
             return;
         if (selectedAnimation == "air_attack" && animations.get(selectedAnimation).isActive())
             return;
+        if (selectedAnimation == "hurt" && animations.get(selectedAnimation).isActive())
+            return;
 
         selectedAnimation = animationName;
     }
@@ -197,6 +199,13 @@ public class Character implements IEntity {
         map.getAreaManager().add(new SwordAttack(attackBounds, this, 200, 400));
 
         return true;
+    }
+
+    public void hurt(int damage) {
+        if (hurt())
+            return;
+        animations.get("hurt").reset();
+        selectAnimation("hurt");
     }
 
     @Override
@@ -244,6 +253,10 @@ public class Character implements IEntity {
         return bounds;
     }
 
+    public int getDirection() {
+        return direction;
+    }
+
     public boolean canJump() {
         return !falling && !jumping;
     }
@@ -254,6 +267,10 @@ public class Character implements IEntity {
 
     public boolean attacking() {
         return selectedAnimation == "attack" || selectedAnimation == "air_attack";
+    }
+
+    public boolean hurt() {
+        return selectedAnimation == "hurt";
     }
 
 }
