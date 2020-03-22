@@ -121,8 +121,12 @@ public class Character implements IEntity {
             velocity.x = 0;
 
         // Y collision
-        if (map.checkWallsCollision(new Rectangle2D.Double(bounds.x, bounds.y + velocity.y, bounds.width, bounds.height)))
+        if (velocity.y <= 0 || map.checkWallsCollision(new Rectangle2D.Double(bounds.x, bounds.y + velocity.y, bounds.width, bounds.height)))
             this.position.y += this.velocity.y;
+        else if (!map.checkWallsCollision(bounds)) {
+            this.position.y += this.velocity.y;
+            jumping = true;
+        }
         else {
             falling = false;
             velocity.y = 0;
