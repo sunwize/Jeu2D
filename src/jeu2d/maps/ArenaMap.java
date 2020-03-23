@@ -52,8 +52,12 @@ public class ArenaMap {
         walls.add(wall);
     }
 
+    public double gravity() {
+        return 0.05;
+    }
+
     public Vec2d friction() {
-        return new Vec2d(0.75, 0.1);
+        return new Vec2d(0.6, 0.9);
     }
 
     public AreaManager getAreaManager() {

@@ -16,12 +16,12 @@ public class Controller extends KeyController {
 
     public void update() {
         if (keyPressed(KeyEvent.VK_RIGHT))
-            character.move(0.2, 0);
+            character.move(0.35, 0);
         if (keyPressed(KeyEvent.VK_LEFT))
-            character.move(-0.2, 0);
+            character.move(-0.35, 0);
         if (keyPressedOnce(KeyEvent.VK_X) && character.attack());
 
-        if (keyPressed(KeyEvent.VK_SPACE) && character.canJump())
+        if (keyPressed(KeyEvent.VK_SPACE))
             character.jump();
 
         if (keyPressedOnce(KeyEvent.VK_CONTROL))

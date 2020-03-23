@@ -36,8 +36,8 @@ public class ArenaState implements IState {
         this.game.inputs().addKeyListener(controller);
         entityManager.add(character);
 
-        Character test = new Character("knight", map, 70, 20);
-        entityManager.add(test);
+        // Character test = new Character("knight", map, 70, 20);
+        // entityManager.add(test);
     }
 
     @Override

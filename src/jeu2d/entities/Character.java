@@ -25,22 +25,16 @@ public class Character implements IEntity {
     public static int LEFT = 0, RIGHT = 1;
 
     private ArenaMap map;
+    private Body body;
     private HashMap<String, Animation> animations;
     private String selectedAnimation = "idle";
     private int direction = RIGHT;
-    private Vec2d position, velocity, acceleration, maxSpeed, boundsOffset;
-    private Rectangle2D.Double bounds;
-    private boolean jumping = false, falling = true;
-    private double jumpForce;
+    private Vec2d boundsOffset;
 
     public Character(String path, ArenaMap map, double cx, double cy) {
         this.map = map;
-        position = new Vec2d(cx, cy);
-        velocity = new Vec2d(0, 0);
-        acceleration = new Vec2d(0, 0);
-        maxSpeed = new Vec2d(0.5, 0.6);
         boundsOffset = new Vec2d(5.5, 2);
-        bounds = new Rectangle2D.Double(position.x + boundsOffset.x, position.y + boundsOffset.y, 4, 9);
+        body = new Body(new Rectangle2D.Double(cx, cy, 4, 9), map);
         loadAnimations(path);
     }
 
@@ -82,89 +76,17 @@ public class Character implements IEntity {
                 direction = LEFT;
         }
 
-        this.acceleration.x += cx;
-        this.acceleration.y += cy;
-    }
-
-    protected void move() {
-        falling = true;
-        if (jumping) {
-            if (jumpForce <= 0) { // Top of the jump
-                jumping = false;
-                falling = true;
-            }
-            else {
-                falling = false;
-                velocity.y -= jumpForce;
-                jumpForce -= 0.01;
-            }
-        }
-
-        // Moving is harder in the air
-        if (falling)
-            velocity.x *= 0.85;
-
-        velocity.x += acceleration.x;
-        velocity.y += acceleration.y;
-
-        acceleration.x += acceleration.x > 0 ? -maxSpeed.x : maxSpeed.x;
-        acceleration.y += acceleration.y > 0 ? -maxSpeed.y : maxSpeed.y;
-
-        if (Math.abs(acceleration.x) <= maxSpeed.x)
-            acceleration.x = 0;
-        if (Math.abs(acceleration.y) <= maxSpeed.y)
-            acceleration.y = 0;
-
-        if (velocity.x == 0 && velocity.y == 0)
-            return;
-
-        // Max speed
-        velocity.x = Math.min(velocity.x, maxSpeed.x);
-        velocity.x = Math.max(velocity.x, -maxSpeed.x);
-        velocity.y = Math.min(velocity.y, maxSpeed.y);
-        velocity.y = Math.max(velocity.y, -maxSpeed.y);
-
-        Rectangle2D.Double bounds = getBounds();
-
-        // X collision
-        if (map.checkWallsCollision(new Rectangle2D.Double(bounds.x + velocity.x, bounds.y, bounds.width, bounds.height)))
-            this.position.x += this.velocity.x;
-        else
-            velocity.x = 0;
-
-        // Y collision
-        if (velocity.y <= 0 || map.checkWallsCollision(new Rectangle2D.Double(bounds.x, bounds.y + velocity.y, bounds.width, bounds.height)))
-            this.position.y += this.velocity.y;
-        else if (!map.checkWallsCollision(bounds)) { // If stuck then fall
-            this.position.y += this.velocity.y;
-            jumping = true;
-        }
-        else {
-            falling = false;
-            velocity.y = 0;
-            jumpForce = 0;
-        }
-
-        // Friction
-        if (Math.abs(velocity.x) > 0.001)
-            velocity.x *= map.friction().x;
-        else
-            velocity.x = 0;
-
-        if (Math.abs(velocity.y) > 0.001)
-            velocity.y *= map.friction().y;
-        else
-            velocity.y = 0;
+        this.body.move(cx, cy);
     }
 
     public void animate() {
-        if (velocity.x == 0 && velocity.y == 0)
+        if (body.velocity.x == 0 && body.velocity.y == 0)
             selectAnimation("idle");
-        else if (Math.abs(velocity.x) > 0.1)
+        else if (Math.abs(body.velocity.x) > 0.1)
             selectAnimation("run");
-        if (velocity.y > 0)
+        if (body.velocity.y > 0)
             selectAnimation("fall");
-        else if (velocity.y < 0)
+        else if (body.velocity.y < 0)
             selectAnimation("jump");
 
         animations.get(selectedAnimation).update();
@@ -188,10 +110,9 @@ public class Character implements IEntity {
     }
 
     public void jump() {
-        falling = false;
-        jumping = true;
-        jumpForce = 0.55;
-        animations.get("jump").reset();
+        body.jump();
+        if (grounded())
+            animations.get("jump").reset();
     }
 
     public boolean attack() {
@@ -231,25 +152,19 @@ public class Character implements IEntity {
 
     @Override
     public void update() {
+        body.update();
         animate();
-
-        if (falling)
-            move(0, 0.7); // Gravity
-        move();
     }
 
     @Override
     public void render(Renderer renderer) {
         BufferedImage frame = animations.get(selectedAnimation).getCurrentFrame();
         if (direction == 1)
-            renderer.drawImage(frame, 15, position.x, position.y, false, false);
+            renderer.drawImage(frame, 15, body.bounds.x - boundsOffset.x, body.bounds.y - boundsOffset.y, false, false);
         else if (direction == 0)
-            renderer.drawImage(frame, 15, position.x, position.y, true);
+            renderer.drawImage(frame, 15, body.bounds.x - boundsOffset.x, body.bounds.y - boundsOffset.y, true);
 
-        if (Config.DEBUG) {
-            Rectangle2D bounds = getBounds();
-            renderer.drawRect(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), Color.GREEN, false);
-        }
+        body.render(renderer);
     }
 
     @Override
@@ -264,21 +179,15 @@ public class Character implements IEntity {
 
     @Override
     public Rectangle2D.Double getBounds() {
-        bounds.x = position.x + boundsOffset.x;
-        bounds.y = position.y + boundsOffset.y;
-        return bounds;
+        return body.bounds;
     }
 
     public int getDirection() {
         return direction;
     }
 
-    public boolean canJump() {
-        return !falling && !jumping;
-    }
-
     public boolean grounded() {
-        return !map.checkWallsCollision(new Rectangle2D.Double(bounds.x, bounds.y + 1, bounds.width, bounds.height));
+        return body.grounded();
     }
 
     public boolean attacking() {
