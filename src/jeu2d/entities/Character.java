@@ -75,7 +75,7 @@ public class Character implements IEntity {
     }
 
     public void move(double cx, double cy) {
-        if (selectedAnimation != "attack" && selectedAnimation != "air_attack") { // Can't turn when attacking
+        if (selectedAnimation != "attack" && selectedAnimation != "air_attack" && selectedAnimation != "hurt") { // Can't turn when attacking or hurt
             if (cx > 0)
                 direction = RIGHT;
             else if (cx < 0)
@@ -173,6 +173,10 @@ public class Character implements IEntity {
     public void selectAnimation(String animationName) {
         if (selectedAnimation == animationName)
             return;
+        if (animationName == "hurt") {
+            selectedAnimation = animationName;
+            return;
+        }
         if (selectedAnimation == "attack" && animations.get(selectedAnimation).isActive())
             return;
         if (selectedAnimation == "air_attack" && animations.get(selectedAnimation).isActive())
@@ -191,7 +195,7 @@ public class Character implements IEntity {
     }
 
     public boolean attack() {
-        if (attacking())
+        if (attacking() || hurt())
             return false;
         if (grounded()) {
             animations.get("attack").reset();
