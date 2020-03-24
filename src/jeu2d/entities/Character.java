@@ -180,9 +180,6 @@ public class Character implements IEntity {
 
         if (body.bounds.y > 100)
             health = 0;
-
-        if (dying())
-            System.out.println(selectedAnimation);
     }
 
     @Override
