@@ -3,6 +3,7 @@ package jeu2d.maps;
 import com.sun.javafx.geom.Vec2d;
 import engine.display.Renderer;
 import engine.graphics.ImageLoader;
+import engine.sounds.SoundPlayer;
 import engine.utils.Constants;
 import jeu2d.attacks.AreaManager;
 import jeu2d.utils.Config;
@@ -19,10 +20,11 @@ public class ArenaMap {
     private BufferedImage background;
     private AreaManager areaManager;
 
-    public ArenaMap(String backgroundPath, AreaManager areaManager) {
+    public ArenaMap(String backgroundPath, String ambientSound, AreaManager areaManager) {
         background = ImageLoader.loadImage(backgroundPath);
         this.areaManager = areaManager;
         walls = new LinkedList<>();
+        SoundPlayer.playSound(ambientSound, 1, -1);
     }
 
     public void render(Renderer renderer) {
@@ -57,7 +59,7 @@ public class ArenaMap {
     }
 
     public Vec2d friction() {
-        return new Vec2d(0.9, 0.9);
+        return new Vec2d(0.8, 0.9);
     }
 
     public AreaManager getAreaManager() {

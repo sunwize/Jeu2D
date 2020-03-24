@@ -2,6 +2,8 @@ package engine;
 
 public class GameEngine implements Runnable {
 
+    public static int FPS = 0;
+
     private Thread thread;
     private IGame game;
     private boolean running = false;
@@ -31,7 +33,6 @@ public class GameEngine implements Runnable {
 
         double frameTime = 0;
         int frames = 0;
-        int fps = 0;
 
         while(running) {
             render = false;
@@ -56,9 +57,9 @@ public class GameEngine implements Runnable {
 
                 if(frameTime >= 1.0) {
                     frameTime = 0;
-                    fps = frames;
+                    FPS = frames;
                     frames = 0;
-                    //System.out.println("FPS: " + fps);
+                    // System.out.println("FPS: " + FPS);
                 }
             }
 

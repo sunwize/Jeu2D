@@ -2,6 +2,7 @@ package jeu2d.attacks;
 
 import engine.display.Renderer;
 import engine.entities.IEntity;
+import engine.sounds.SoundPlayer;
 import engine.utils.Clock;
 import jeu2d.entities.Character;
 import jeu2d.utils.Config;
@@ -10,6 +11,7 @@ import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.util.LinkedList;
 import java.util.ListIterator;
+import java.util.Random;
 
 public class SwordAttack implements Area {
 
@@ -49,12 +51,15 @@ public class SwordAttack implements Area {
 
         if (target instanceof Character) {
             Character c = (Character) target;
-            c.hurt(0);
-            double force = 5;
+            c.hurt(50);
+            double force = 20;
             if (source.getDirection() == Character.RIGHT)
                 c.move(force, 0);
             else if (source.getDirection() == Character.LEFT)
                 c.move(-force, 0);
+
+            int num = new Random().nextInt(3) + 4;
+            SoundPlayer.playSound("sword_impact" + num + ".mp3", 0.8, 1);
         }
     }
 

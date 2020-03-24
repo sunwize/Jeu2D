@@ -1,4 +1,6 @@
 {
 	"animation_speed_ms": 100,
-	"loops": 1
+	"loops": 1,
+	cancelable: false,
+	prioritized: false
 }

@@ -1,5 +1,6 @@
 package engine.display;
 
+import engine.GameEngine;
 import engine.utils.Constants;
 
 import javax.swing.*;
@@ -15,10 +16,12 @@ public class Display {
     private Canvas canvas;
     private BufferStrategy bs;
     private Renderer renderer;
+    private String title;
 
     public Display(String title) {
         renderer = new Renderer(this);
 
+        this.title = title;
         frame = new JFrame(title);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(1280, 720);
@@ -51,6 +54,7 @@ public class Display {
     }
 
     public void preRender() {
+        frame.setTitle(title + " : " + GameEngine.FPS + " fps");
         bs = canvas.getBufferStrategy();
 
         if(bs == null) {

@@ -36,7 +36,6 @@ public class Body {
     }
 
     public void update() {
-        System.out.println(velocity.x);
         // X acceleration
         double acc = 0;
         if (acceleration.x > 0) {
@@ -52,8 +51,8 @@ public class Body {
         // Y acceleration
         acc = 0;
         acceleration.y += map.gravity();
-        if (velocity.y < 0 && acceleration.y > 0) {
-            acc = 0.01;
+        if (velocity.y < 0 && acceleration.y > 0) { // Delay the top of a jump
+            acc = 0.009;
         } else {
             acc = acceleration.y / 3.0;
         }
@@ -63,7 +62,7 @@ public class Body {
         if (grounded)
             velocity.x *= map.friction().x; // X ground friction
         else
-            velocity.x *= map.friction().x * 0.85; // X air friction
+            velocity.x *= map.friction().x * 0.95; // X air friction
 
         // Security reset
         if (Math.abs(velocity.x) < 0.01)

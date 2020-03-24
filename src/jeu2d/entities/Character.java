@@ -6,19 +6,19 @@ import engine.animations.Frame;
 import engine.display.Renderer;
 import engine.entities.IEntity;
 import engine.graphics.ImageLoader;
+import engine.sounds.SoundPlayer;
 import engine.utils.Constants;
 import engine.utils.Utils;
 import jeu2d.attacks.SwordAttack;
 import jeu2d.maps.ArenaMap;
-import jeu2d.utils.Config;
 import org.json.JSONObject;
 
-import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Random;
 
 public class Character implements IEntity {
 
@@ -28,18 +28,25 @@ public class Character implements IEntity {
     private Body body;
     private HashMap<String, Animation> animations;
     private String selectedAnimation = "idle";
-    private int direction = RIGHT;
+    private int direction = RIGHT, health, maxHealth = 100;
     private Vec2d boundsOffset;
+
+    // Animations purposes
+    private LinkedList<String> unCancelable;
+    private LinkedList<String> prioritized;
 
     public Character(String path, ArenaMap map, double cx, double cy) {
         this.map = map;
         boundsOffset = new Vec2d(5.5, 2);
         body = new Body(new Rectangle2D.Double(cx, cy, 4, 9), map);
         loadAnimations(path);
+        health = maxHealth;
     }
 
     private void loadAnimations(String path) {
         animations = new HashMap<>();
+        unCancelable = new LinkedList<>();
+        prioritized = new LinkedList<>();
         File dir = new File(Constants.IMAGES_PATH + "/" + path);
 
         for (String filename : dir.list()) { // Load character folder
@@ -54,6 +61,11 @@ public class Character implements IEntity {
                     JSONObject config = new JSONObject(Utils.loadJSON(configFile));
                     loops = config.getInt("loops");
                     animationSpeed = config.getInt("animation_speed_ms");
+
+                    if (!config.getBoolean("cancelable"))
+                        unCancelable.add(dir2.getName());
+                    if (config.getBoolean("prioritized"))
+                        prioritized.add(dir2.getName());
                 }
             }
 
@@ -95,15 +107,11 @@ public class Character implements IEntity {
     public void selectAnimation(String animationName) {
         if (selectedAnimation == animationName)
             return;
-        if (animationName == "hurt") {
+        if (prioritized.contains(animationName)) {
             selectedAnimation = animationName;
             return;
         }
-        if (selectedAnimation == "attack" && animations.get(selectedAnimation).isActive())
-            return;
-        if (selectedAnimation == "air_attack" && animations.get(selectedAnimation).isActive())
-            return;
-        if (selectedAnimation == "hurt" && animations.get(selectedAnimation).isActive())
+        if (unCancelable.contains(selectedAnimation) && animations.get(selectedAnimation).isActive())
             return;
 
         selectedAnimation = animationName;
@@ -111,8 +119,10 @@ public class Character implements IEntity {
 
     public void jump() {
         body.jump();
-        if (grounded())
+        if (grounded()) {
             animations.get("jump").reset();
+            SoundPlayer.playSound("jump.mp3", 0.5, 1);
+        }
     }
 
     public boolean attack() {
@@ -133,27 +143,46 @@ public class Character implements IEntity {
         } else {
             attackBounds = new Rectangle2D.Double(-5, 0, 5, bounds.height);
         }
+        int num = new Random().nextInt(3) + 1;
+        SoundPlayer.playSound("sword_attack" + num + ".mp3", 0.8, 1);
         map.getAreaManager().add(new SwordAttack(attackBounds, this, 200, 400));
 
         return true;
     }
 
     public void hurt(int damage) {
-        if (hurt())
+        if (hurt() || dying())
             return;
-        animations.get("hurt").reset();
-        selectAnimation("hurt");
+        health = Math.max(0, health - damage);
+
+        if (health > 0) {
+            animations.get("hurt").reset();
+            selectAnimation("hurt");
+        } else {
+            animations.get("die").reset();
+            selectAnimation("die");
+        }
     }
 
     @Override
     public boolean isActive() {
-        return true;
+        return dying() || health > 0;
     }
 
     @Override
     public void update() {
         body.update();
+
+        if (attacking() && grounded())
+            body.velocity.x *= 0.5;
+
         animate();
+
+        if (body.bounds.y > 100)
+            health = 0;
+
+        if (dying())
+            System.out.println(selectedAnimation);
     }
 
     @Override
@@ -186,6 +215,14 @@ public class Character implements IEntity {
         return direction;
     }
 
+    public int getMaxHealth() {
+        return maxHealth;
+    }
+
+    public int getHealth() {
+        return health;
+    }
+
     public boolean grounded() {
         return body.grounded();
     }
@@ -196,6 +233,10 @@ public class Character implements IEntity {
 
     public boolean hurt() {
         return selectedAnimation == "hurt";
+    }
+
+    public boolean dying() {
+        return selectedAnimation == "die";
     }
 
 }

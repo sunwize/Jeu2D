@@ -4,6 +4,7 @@ import engine.GameEngine;
 import engine.IGame;
 import engine.display.Display;
 import engine.managers.StateManager;
+import engine.sounds.SoundPlayer;
 import jeu2d.states.ArenaState;
 
 import java.awt.*;
@@ -14,7 +15,8 @@ public class Game implements IGame {
     private Display display;
 
     public Game() {
-        display = new Display("Jeu 2D");
+        SoundPlayer.init();
+        display = new Display("Abort The Mission");
         stateManager = new StateManager();
         stateManager.switchState(new ArenaState(this));
     }

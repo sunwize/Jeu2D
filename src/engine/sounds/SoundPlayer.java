@@ -13,6 +13,16 @@ public class SoundPlayer {
     private static JFXPanel fxPanel = new JFXPanel();
     private static HashMap<String, MediaPlayer> sounds = new HashMap<>();
 
+    public static void init() {
+        File soundFolder = new File(Constants.SOUNDS_PATH);
+
+        for (String soundName : soundFolder.list()) {
+            Media hit = new Media(new File(Constants.SOUNDS_PATH + soundName).toURI().toString());
+            MediaPlayer mediaPlayer = new MediaPlayer(hit);
+            sounds.put(soundName, mediaPlayer);
+        }
+    }
+
     /**
      *
      * @param name Sound file name
@@ -20,20 +30,15 @@ public class SoundPlayer {
      * @param loops Amount of loops : -1 for infinite
      */
     public static void playSound(String name, double volume, int loops) {
-        if(sounds.containsKey(name)) {
-            MediaPlayer mediaPlayer = sounds.get(name);
-            mediaPlayer.setVolume(volume);
-            mediaPlayer.setCycleCount(loops);
-            mediaPlayer.play();
-        }
-        else {
-            Media hit = new Media(new File(Constants.SOUNDS_PATH + name).toURI().toString());
-            MediaPlayer mediaPlayer = new MediaPlayer(hit);
-            mediaPlayer.setVolume(volume);
-            mediaPlayer.setCycleCount(loops);
-            mediaPlayer.play();
-            sounds.put(name, mediaPlayer);
-        }
+        new Thread(() -> {
+            if(sounds.containsKey(name)) {
+                MediaPlayer mediaPlayer = sounds.get(name);
+                mediaPlayer.setVolume(volume);
+                mediaPlayer.setCycleCount(loops);
+                mediaPlayer.stop();
+                mediaPlayer.play();
+            }
+        }).start();
     }
 
 }
