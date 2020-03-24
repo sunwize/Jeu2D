@@ -20,27 +20,50 @@ public class Body {
         this.map = map;
         velocity = new Vec2d(0, 0);
         acceleration = new Vec2d(0, 0);
-        maxSpeed = new Vec2d(0.7, 0.9);
+        maxSpeed = new Vec2d(0.6, 0.9);
     }
 
     public void move(double cx, double cy) {
-        velocity.x += cx;
-        velocity.y += cy;
+        acceleration.x += cx;
+        acceleration.y += cy;
     }
 
     public void jump() {
         if (!grounded)
             return;
-        velocity.y = -1.3;
+        acceleration.y = -1.2;
+        velocity.y = 0;
     }
 
     public void update() {
-        velocity.y += map.gravity(); // Gravity
+        System.out.println(velocity.x);
+        // X acceleration
+        double acc = 0;
+        if (acceleration.x > 0) {
+            acc = Math.min(acceleration.x / 3.0, maxSpeed.x);
+        } else if (acceleration.x < 0) {
+            acc = Math.max(acceleration.x / 3.0, -maxSpeed.x);
+        }
+
+        velocity.x += acc;
+        acceleration.x *= 0.3;
+        acceleration.x = Math.abs(acceleration.x) < 0.01 ? 0 : acceleration.x;
+
+        // Y acceleration
+        acc = 0;
+        acceleration.y += map.gravity();
+        if (velocity.y < 0 && acceleration.y > 0) {
+            acc = 0.01;
+        } else {
+            acc = acceleration.y / 3.0;
+        }
+        velocity.y += acc;
+        acceleration.y *= 0.4;
 
         if (grounded)
             velocity.x *= map.friction().x; // X ground friction
         else
-            velocity.x *= 0.6; // X air friction
+            velocity.x *= map.friction().x * 0.85; // X air friction
 
         // Security reset
         if (Math.abs(velocity.x) < 0.01)

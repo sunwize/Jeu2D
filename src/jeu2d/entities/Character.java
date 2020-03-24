@@ -80,7 +80,7 @@ public class Character implements IEntity {
     }
 
     public void animate() {
-        if (body.velocity.x == 0 && body.velocity.y == 0)
+        if (Math.abs(body.velocity.x) < 0.1 && Math.abs(body.velocity.y) < 0.1)
             selectAnimation("idle");
         else if (Math.abs(body.velocity.x) > 0.1)
             selectAnimation("run");

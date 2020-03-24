@@ -57,7 +57,7 @@ public class ArenaMap {
     }
 
     public Vec2d friction() {
-        return new Vec2d(0.6, 0.9);
+        return new Vec2d(0.9, 0.9);
     }
 
     public AreaManager getAreaManager() {
